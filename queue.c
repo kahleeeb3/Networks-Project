@@ -109,7 +109,8 @@ int main()
 {
 
    srand(time(NULL)); // seed the random number
-   strategy1();
+   // strategy1();
+   strategy2();
 
    return 0;
 }
