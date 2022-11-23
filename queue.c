@@ -25,13 +25,18 @@ void strategy1()
 
    double elapsedTime = 0.0; // current time in simulation
    double arrivalTime = 0.0; // Time for next arrival
-   double departureTime = SIM_TIME; // Time for next departure
+   double departureTime = INFINITY; // Time for next departure
 
    int queues[2] = {0}; // initially each of sthe two queues are in state 0
    int droppedPackets = 0; // number of dropped packets
    int numCustomers = 0; // number of customers in the system
    int qn; // buffer number that the incoming packet will go to
 
+   // wait for the first incoming packet
+   arrivalTime = rand_exp(ARR_TIME);
+   elapsedTime += arrivalTime;
+   
+   
    // Run The Simulation
    while (elapsedTime < SIM_TIME)
    {
@@ -40,32 +45,48 @@ void strategy1()
       if (arrivalTime < departureTime)                
       {
          elapsedTime = arrivalTime; // update the elapsed time
-         numCustomers += 1; // increase the number of customers in system
+         
+         // Assign it to a queue randomly
+         qn = rand() % 2; // number queue it should go into
+
+         // if there is less than 10 items in the queue, add the packet to the queue
+         if (queues[qn] < BUFF_SIZE)
+         {
+            numCustomers += 1; // increase the number of customers in system
+            queues[qn] += 1; // increase the number of customers in queue
+         }
+         else
+            droppedPackets += 1;
+
          arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
          if (numCustomers == 1) // if there is only one customer, service it
          {
-            departureTime = elapsedTime + rand_exp(ARR_TIME); // get the time after service completes
+            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time after service completes
          }
       }
 
       // (2) if a departure happens before an arrival
       else
       {
-         elapsedTime = arrivalTime; // update the elapsed time
+         elapsedTime = departureTime; // update the elapsed time
          numCustomers -= 1; // decrease the number of customers in system
 
          // if there are any packets in the server
          if (numCustomers > 0)
          {
-            arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
+            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time of the next arrival
          }
          else
          {
-            arrivalTime = SIM_TIME;
+            departureTime = INFINITY; // need to wait for another arrival
          }
 
       }
    }
+   // Simulation Over
+   printf("queues:[%i,%i]\n",queues[0],queues[1]);
+   printf("numCustomers:%i\n",numCustomers);
+   printf("droppedPackets:%i\n",droppedPackets);
 }
       
       
@@ -78,17 +99,6 @@ void strategy1()
       
       // Packet Arrived
       // elapsedTime += rand_exp(ARR_TIME);
-
-      // Assign it to a queue randomly
-      // qn = rand() % 2; // number queue it should go into
-
-      // if there is less than 10 items in the queue, add the packet to the queue
-      // if (queues[qn] < BUFF_SIZE)
-      // {
-      //    queues[qn] += 1;
-      // }
-      // else
-      //    droppedPackets += 1;
 
 double rand_exp(double lambda)
 {
@@ -109,8 +119,8 @@ int main()
 {
 
    srand(time(NULL)); // seed the random number
-   // strategy1();
-   strategy2();
+   strategy1();
+   // strategy2();
 
    return 0;
 }
