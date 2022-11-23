@@ -58,11 +58,12 @@ void strategy1()
          else
             droppedPackets += 1;
 
-         arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
          if (numCustomers == 1) // if there is only one customer, service it
          {
             departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time after service completes
          }
+         
+         arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
       }
 
       // (2) if a departure happens before an arrival
@@ -70,6 +71,8 @@ void strategy1()
       {
          elapsedTime = departureTime; // update the elapsed time
          numCustomers -= 1; // decrease the number of customers in system
+
+         // NEED TO REMOVE FROM ONE QUEUE
 
          // if there are any packets in the server
          if (numCustomers > 0)
@@ -84,9 +87,9 @@ void strategy1()
       }
    }
    // Simulation Over
-   printf("queues:[%i,%i]\n",queues[0],queues[1]);
-   printf("numCustomers:%i\n",numCustomers);
-   printf("droppedPackets:%i\n",droppedPackets);
+   printf("queues:[%d,%d]\n",queues[0],queues[1]);
+   printf("numCustomers:%d\n",numCustomers);
+   printf("droppedPackets:%d\n",droppedPackets);
 }
       
       
