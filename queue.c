@@ -32,10 +32,8 @@ void strategy1()
    int numCustomers = 0; // number of customers in the system
    int qn; // buffer number that the incoming packet will go to
 
-   // wait for the first incoming packet
-   arrivalTime = rand_exp(ARR_TIME);
-   elapsedTime += arrivalTime;
-   
+   // get first packet arrival time
+   arrivalTime = rand_exp(ARR_TIME);   
    
    // Run The Simulation
    while (elapsedTime < SIM_TIME)
@@ -91,17 +89,6 @@ void strategy1()
    printf("numCustomers:%d\n",numCustomers);
    printf("droppedPackets:%d\n",droppedPackets);
 }
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      // Packet Arrived
-      // elapsedTime += rand_exp(ARR_TIME);
 
 double rand_exp(double lambda)
 {
