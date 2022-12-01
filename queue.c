@@ -19,6 +19,7 @@ void strategy2();
 void Initilization();
 void Arrival(double arrivalTime);
 void Departure(double arrivalTime);
+void Simulation();
 
 int main()
 {
@@ -38,6 +39,7 @@ double utilization;              // Utilization of serve
 double throughput;               // Throughput
 double timeNextEvent;
 int    queues[2] = {0};          // initially each of sthe two queues are in state 0
+int    queue_len [2] ={0};
 int    qn;                       // buffer number that the incoming packet will go to
 int    droppedPackets = 0;       // number of dropped packets
 int    numCustomers = 0;         // number of customers in the system
@@ -78,8 +80,11 @@ void strategy2()
    printf("strategy 2\n");
    
    // get first packet arrival time
-   arrivalTime = rand_exp(ARR_TIME);   
-   timeNextEvent = math.min(arrivalTime, departureTime);
+   arrivalTime = rand_exp(ARR_TIME);
+   if (arrivalTime< departureTime)   
+      timeNextEvent = arrivalTime;
+   else 
+      timeNextEvent = departureTime; 
    while (elapsedTime < SIM_TIME)
    {
       if (arrivalTime < departureTime)           // (1) if a customer is arrival, when arrival time < departure time               
@@ -93,6 +98,7 @@ void strategy2()
 }
 
 void Arrival (double arrivalTime){
+   
    qn = assignPacket(queue_len);       // Assign it to a queue depending on min_len
    totalwaitingTime = totalwaitingTime + queue_len[qn] * (timeNextEvent - elapsedTime);
    elapsedTime = timeNextEvent;
@@ -132,17 +138,15 @@ void Departure(double arrivalTime){
 
 void Simulation(){
    throughput  = CompletedService/ elapsedTime;
-   AvgInterarrivalTime = elapsedTime/numArrivals;
-   AvgServiceTime = CompletedService/ CompletedService;
-   waitingTime = totalwaitingTime;
-
+   double AvgInterarrivalTime = elapsedTime/numArrivals;
+   double AvgServiceTime = CompletedService/ CompletedService;
    // Simulation Over
    printf("queues:[%d,%d]\n",queues[0],queues[1]);
    printf("numCustomers:%d\n",numCustomers);
    printf("droppedPackets:%d\n",droppedPackets);
    printf("throughput:%d\n",throughput);
    printf("AvgServiceTime:%d\n",AvgServiceTime);
-   printf("waitingTime:%d\n",waitingTime);
+   printf("waitingTime:%d\n",totalwaitingTime);
    printf("AvgInterarrivalTime:%d\n",AvgInterarrivalTime);
    
 }
