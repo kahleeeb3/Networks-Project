@@ -10,11 +10,16 @@
 #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 #define SERV_TIME 1.00      // Mean service time (μ)
 
+
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
 int assignPacket (int queue_len[]);
 void strategy1();
 void strategy2();
+void Initilization();
+void Arrival(double arrivalTime);
+void Departure(double arrivalTime);
+
 int main()
 {
 
@@ -24,7 +29,22 @@ int main()
 
    return 0;
 }
-
+double elapsedTime = 0.0;        // current time in simulation
+double arrivalTime = 0.0;        // Time for next arrival
+double departureTime = INFINITY; // Time for next departure
+double servicetime = 0.0;        // total service time
+double totalwaitingTime;         // total waiting  time
+double utilization;              // Utilization of serve
+double throughput;               // Throughput
+double timeNextEvent;
+int    queues[2] = {0};          // initially each of sthe two queues are in state 0
+int    qn;                       // buffer number that the incoming packet will go to
+int    droppedPackets = 0;       // number of dropped packets
+int    numCustomers = 0;         // number of customers in the system
+int    CompletedService = 0;     // number of service completions, departured
+int    numArrivals = 0; 
+int    waitingCust = 0;          // customers who had to wait in line(counter)
+   
 
 double rand_exp(double lambda)
 {
@@ -56,63 +76,75 @@ int assignPacket (int queue_len[])
 void strategy2()
 {
    printf("strategy 2\n");
-   double elapsedTime = 0.0; // current time in simulation
-   double arrivalTime = 0.0; // Time for next arrival
-   double departureTime = INFINITY; // Time for next departure
-
-   int queues[2] = {0}; // initially each of sthe two queues are in state 0
-   int queue_len [2] = {0}; //intially the buffersize of both queues will be 0
-   int droppedPackets = 0; // number of dropped packets
-   int numCustomers = 0; // number of customers in the system
-   int qn; // buffer number that the incoming packet will go to
-
-   arrivalTime = rand_exp(ARR_TIME);   // get first packet arrival time
-   for (int i; i<2 ; i++)
-      queue_len[i] = sizeof(queues[i]);
-
-   while (elapsedTime < SIM_TIME)   // Run The Simulation
+   
+   // get first packet arrival time
+   arrivalTime = rand_exp(ARR_TIME);   
+   timeNextEvent = math.min(arrivalTime, departureTime);
+   while (elapsedTime < SIM_TIME)
    {
-      // (1) if an arrival happens before a departure
-      if (arrivalTime < departureTime)                
-      {
-         elapsedTime = arrivalTime; // update the elapsed time        
-         qn = assignPacket(queue_len); // Assign it to a queue depending on min_len
-         if (queues[qn] < BUFF_SIZE)         // if there is less than 10 items in the queue, add the packet to the queue
-         {
-            numCustomers += 1;   // increase the number of customers in system
-            queues[qn] += 1;     // increase the number of customers in queue
-            queue_len[qn] += 1;  // increase the length of the queue 
-         }
-         else
-            droppedPackets += 1;
-
-         if (numCustomers == 1) // if there is only one customer, service it
-            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time after service completes
-         
-         arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
-      }
-
-      // (2) if a departure happens before an arrival
-      else
-      {
-         elapsedTime = departureTime; // update the elapsed time
-         numCustomers -= 1;           // decrease the number of customers in system
-         queue_len[qn] -= 1; 
-         // NEED TO REMOVE FROM ONE QUEUE
-         
-         if (numCustomers > 0)        // if there are any packets in the server
-            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time of the next arrival
-         else
-            departureTime = INFINITY; // need to wait for another arrival
-
-      }
+      if (arrivalTime < departureTime)           // (1) if a customer is arrival, when arrival time < departure time               
+         Arrival(arrivalTime);
+      else                                     // (2) if a customer is departured, if departure time < arrival time
+         Departure(arrivalTime);
    
 }
+      Simulation();
+
+}
+
+void Arrival (double arrivalTime){
+   qn = assignPacket(queue_len);       // Assign it to a queue depending on min_len
+   totalwaitingTime = totalwaitingTime + queue_len[qn] * (timeNextEvent - elapsedTime);
+   elapsedTime = timeNextEvent;
+   if (queues[qn] < BUFF_SIZE)         // if there is less than 10 items in the queue, add the packet to the queue
+   {
+      numCustomers += 1;               // increase the number of customers in system
+      numArrivals += 1;
+      queues[qn] += 1;                 // increase the number of customers in queue
+      queue_len[qn] += 1;              // increase the length of the queue 
+      waitingCust += 1;
+   }
+   else
+      droppedPackets += 1;             //if the buffer is full, drop it
+
+   if (numCustomers == 1)                                         // if there is only one customer, service it
+   {
+      double rand = rand_exp(SERV_TIME);
+      departureTime = elapsedTime + rand;          // get the time after this service completes
+      totalwaitingTime += rand;                   ///?? check again
+   }   
+   arrivalTime = elapsedTime + rand_exp(ARR_TIME);                // get the time of the next arrival
+}
+
+void Departure(double arrivalTime){
+   numCustomers -= 1;                     // decrease the number of customers in system
+   queue_len[qn] -= 1;                    // NEED TO REMOVE FROM ONE QUEUE
+   CompletedService+=1;                   // Increase number of completed service by 1 when it departured 
+   if (numCustomers > 0)                  // if there are any packets in the server
+   {
+      double rand = rand_exp(SERV_TIME);
+      departureTime = elapsedTime + rand;         // get the time of the next arrival
+      totalwaitingTime +=  rand;
+   }  
+   else
+      departureTime = INFINITY;           // need to wait for another arrival
+}
+
+void Simulation(){
+   throughput  = CompletedService/ elapsedTime;
+   AvgInterarrivalTime = elapsedTime/numArrivals;
+   AvgServiceTime = CompletedService/ CompletedService;
+   waitingTime = totalwaitingTime;
+
    // Simulation Over
    printf("queues:[%d,%d]\n",queues[0],queues[1]);
    printf("numCustomers:%d\n",numCustomers);
    printf("droppedPackets:%d\n",droppedPackets);
-
+   printf("throughput:%d\n",throughput);
+   printf("AvgServiceTime:%d\n",AvgServiceTime);
+   printf("waitingTime:%d\n",waitingTime);
+   printf("AvgInterarrivalTime:%d\n",AvgInterarrivalTime);
+   
 }
 
 void strategy1()

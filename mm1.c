@@ -50,6 +50,7 @@ int main(void)
   double   u;                   // Utilization
   double   l;                   // Mean number in the system
   double   w;                   // Mean residence time
+  
 
   // Seed the RNG
   rand_val(1);
@@ -63,11 +64,11 @@ int main(void)
       s = s + n * (time - tn);  // Update area under "s" curve
       n++;
       tn = time;                // tn = "last event time" for next event
-      t1 = time + exponential(Ta);
+      t1 = time + exponential(Ta);  // plus next arrival time
       if (n == 1)
       {
         tb = time;              // Set "last start of busy time"
-        t2 = time + exponential(Ts);
+        t2 = time + exponential(Ts);  //plus service time
       }
     }
     else                        // *** Event #2 (departure) ***
