@@ -7,7 +7,10 @@
 // Constants
 #define BUFF_SIZE 10        // Size of the Buffer
 #define SIM_TIME 100        // How long the sim should run
-#define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
+// #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
+// #define SERV_TIME 1.00      // Mean service time (μ)
+
+#define ARR_TIME 1.00 // Mean time between arrivals (λ)
 #define SERV_TIME 1.00      // Mean service time (μ)
 
 // function declaration
@@ -25,9 +28,10 @@ void strategy1()
 
    double elapsedTime = 0.0; // current time in simulation
    double arrivalTime = 0.0; // Time for next arrival
-   double departureTime = INFINITY; // Time for next departure
+   double departureTime1 = INFINITY; // Time for next departure from server 1
+   double departureTime2 = INFINITY; // Time for next departure from server 2
 
-   int queues[2] = {0}; // initially each of sthe two queues are in state 0
+   int queues[2] = {0}; // initially each of the two queues are in state 0
    int droppedPackets = 0; // number of dropped packets
    int numCustomers = 0; // number of customers in the system
    int qn; // buffer number that the incoming packet will go to
@@ -40,7 +44,7 @@ void strategy1()
    {
     
       // (1) if an arrival happens before a departure
-      if (arrivalTime < departureTime)                
+      if ( (arrivalTime < departureTime1) && (arrivalTime<departureTime1) )                
       {
          elapsedTime = arrivalTime; // update the elapsed time
          
@@ -54,40 +58,64 @@ void strategy1()
             queues[qn] += 1; // increase the number of customers in queue
          }
          else
-            droppedPackets += 1;
+            droppedPackets += 1; // not enough space, drop packet
 
-         if (numCustomers == 1) // if there is only one customer, service it
+         
+         // if there is only one customer in either server 1 or 2, then service it
+         if (queues[0] == 1) // QUEUE 1
          {
-            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time after service completes
+            departureTime1 = elapsedTime + rand_exp(SERV_TIME); // get the time of serv 1 departure
+         }
+
+         if (queues[1] == 1) // QUEUE 2
+         {
+            departureTime2 = elapsedTime + rand_exp(SERV_TIME); // get the time of serv 2 departure
          }
          
          arrivalTime = elapsedTime + rand_exp(ARR_TIME); // get the time of the next arrival
       }
 
-      // (2) if a departure happens before an arrival
+      // (2) if the time of departure from server 1 happens before server 2
+      else if (departureTime1 < departureTime2){
+         elapsedTime = departureTime1; // update the elapsed time
+         queues[0] -= 1; // decrease the number of customers in queue 1
+
+         // if there are any packets in the first queue
+         if ( queues[0] > 0 )
+         {
+            departureTime1 = elapsedTime + rand_exp(SERV_TIME); // get the time of the next arrival
+         }
+         else // the first buffer is empty
+         {
+            departureTime1 = INFINITY; // need to wait for another arrival
+         }
+      }
+
+      // (3) server 2 departs before server 1
       else
       {
-         elapsedTime = departureTime; // update the elapsed time
-         numCustomers -= 1; // decrease the number of customers in system
+         elapsedTime = departureTime2; // update the elapsed time
+         queues[1] -= 1; // decrease the number of customers in queue 2
 
-         // NEED TO REMOVE FROM ONE QUEUE
-
-         // if there are any packets in the server
-         if (numCustomers > 0)
+         // if there are any packets in the second queue
+         if ( queues[1] > 0 )
          {
-            departureTime = elapsedTime + rand_exp(SERV_TIME); // get the time of the next arrival
+            departureTime2 = elapsedTime + rand_exp(SERV_TIME); // get the time of the next arrival
          }
-         else
+         else // the second buffer is empty
          {
-            departureTime = INFINITY; // need to wait for another arrival
+            departureTime2 = INFINITY; // need to wait for another arrival
          }
 
       }
    }
    // Simulation Over
-   printf("queues:[%d,%d]\n",queues[0],queues[1]);
-   printf("numCustomers:%d\n",numCustomers);
-   printf("droppedPackets:%d\n",droppedPackets);
+   long double blockProb = (long double)droppedPackets/(long double)numCustomers;
+   printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
+   // printf("queues:[%d,%d]\n",queues[0],queues[1]);
+   // printf("Blocking Probability %i/%i\n", droppedPackets,numCustomers);
+   // printf("Blocking Probability %.8Lf\n", blockProb);
+   printf("Run Time: %f\n",elapsedTime);
 }
 
 double rand_exp(double lambda)
