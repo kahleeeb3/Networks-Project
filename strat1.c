@@ -36,6 +36,8 @@ void strategy1()
    int numCustomers = 0; // number of customers in the system
    int qn; // buffer number that the incoming packet will go to
 
+   int queueLengthSum = 0; // sum of the number of packets in Q1 sampled at the arrival time of a packet
+
    // get first packet arrival time
    arrivalTime = rand_exp(ARR_TIME);   
    
@@ -44,12 +46,22 @@ void strategy1()
    {
     
       // (1) if an arrival happens before a departure
-      if ( (arrivalTime < departureTime1) && (arrivalTime<departureTime1) )                
+      if ( (arrivalTime < departureTime1) && (arrivalTime<departureTime2) )                
       {
+         
+              
          elapsedTime = arrivalTime; // update the elapsed time
          
          // Assign it to a queue randomly
          qn = rand() % 2; // number queue it should go into
+
+         // Keep track of the number of customers in queue 1
+         if ((qn == 0) && (queues[0]>0) ){
+            queueLengthSum += (queues[0]+1);
+         }
+         // else if ((qn == 0) && (queues[0]==0) ){
+         //    queueLengthSum += 1;
+         // }
 
          // if there is less than 10 items in the queue, add the packet to the queue
          if (queues[qn] < BUFF_SIZE)
@@ -110,12 +122,19 @@ void strategy1()
       }
    }
    // Simulation Over
-   long double blockProb = (long double)droppedPackets/(long double)numCustomers;
+
    printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
    // printf("queues:[%d,%d]\n",queues[0],queues[1]);
-   // printf("Blocking Probability %i/%i\n", droppedPackets,numCustomers);
+   // printf("Run Time: %f\n",elapsedTime);
+   
+   // long double blockProb = (long double)droppedPackets/(long double)numCustomers;
    // printf("Blocking Probability %.8Lf\n", blockProb);
-   printf("Run Time: %f\n",elapsedTime);
+   // printf("Blocking Probability %i/%i\n", droppedPackets,numCustomers);
+
+   long double avgQueLen = (long double)queueLengthSum/(long double)numCustomers;
+   // printf("Avg Customer in Queue %.8Lf\n", avgQueLen);
+   printf("Avg Customer in Queue: %i/%i\n",queueLengthSum,numCustomers);
+   
 }
 
 double rand_exp(double lambda)
