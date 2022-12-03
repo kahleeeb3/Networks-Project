@@ -9,8 +9,8 @@
 // #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 // #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 2.00 // Mean time between arrivals (λ)
-#define SERV_TIME 1.00  // Mean service time (μ)
+#define ARR_TIME 1.0 // Mean time between arrivals (λ)
+#define SERV_TIME 0.5 // Mean service time (μ)
 
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
@@ -165,25 +165,11 @@ void strategy1()
    long double avgQueLen = queLenSum/elapsedTime;
    long double AvgSojournTime = queLenSum/numCustomers;
 
-   
-   // printf("queues:[%d,%d]\n",queues[0],queues[1]);
-   // printf("Run Time: %f\n",elapsedTime);
-   
-   // printf("Blocking Probability %i/%i\n", droppedPackets,(numCustomers+droppedPackets));
-   // printf("Blocking Probability %.8Lf\n", blockProb);
-
-   // printf("Avg Que Length %Lf/%f\n", queLenSum,elapsedTime);
-   
-   // printf("Avg Que Length %.8Lf\n", avgQueLen);
-
-   // long double AvgSojournTime = sojournTime/(numCustomers);
-   // printf("AvgSojournTime: %.8Lf\n", AvgSojournTime);
-
 
    // printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
    // printf("%.8Lf, ", blockProb);
-   // printf("%.8Lf, ", avgQueLen);
-   printf("%.8Lf, ", AvgSojournTime);
+   printf("%.8Lf, ", avgQueLen);
+   // printf("%.8Lf, ", AvgSojournTime);
    
 }
 
@@ -207,7 +193,7 @@ int main()
 
    srand(time(NULL)); // seed the random number
 
-   int loops = 1; // number of trials to run
+   int loops = 10; // number of trials to run
 
    int i;
    for(i = 0; i<loops; i++){
