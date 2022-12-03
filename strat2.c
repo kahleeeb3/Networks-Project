@@ -10,12 +10,15 @@
 // #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 // #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 2.11 // Mean time between arrivals (λ)
-#define SERV_TIME 1.0      // Mean service time (μ)
-
+#define ARR_TIME 1.0 // Mean time between arrivals (λ)
+#define SERV_TIME 0.8    // Mean service time (μ)
+double rhoList[10] = {0.0};
+double Que[10] = {0.0};
+double ST[10] = {0.0};
+double BP[10] = {0};
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
-
+void strategy2(int i);
 
 int assignPacket (int queue_len[])
 {
@@ -28,7 +31,7 @@ int assignPacket (int queue_len[])
 }
 
 
-void strategy2()
+void strategy2(int i)
 {
    printf("strategy 2\n");
    double elapsedTime = 0.0; // current time in simulation
@@ -125,13 +128,15 @@ void strategy2()
    double QueueLength = queue_len[0]+queue_len[1]; 
    int blockedPackets = droppedPackets/avgQueLen;
    SerjounTime = avgQueLen/ARR_TIME;
+    rhoList[i] = rho;  
+    Que[i] = avgQueLen;
+    BP[i] = blockedPackets;
+    ST[i] = SerjounTime;
 
    printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
-   printf("Avg Customer in Queue: %.8Lf\n", avgQueLen);
+   printf("Avg Customer in Queue: %.f\n", avgQueLen);
    printf("Blocked Packets: %d\n", blockedPackets);
-   printf("queues: [%d,%d]\n",queues[0],queues[1]);
    printf("numCustomers: %d\n",numCustomers);
-   printf("droppedPackets: %d\n",droppedPackets);
    printf("SerjounTime: %f\n", SerjounTime);
 
  
@@ -162,7 +167,23 @@ int main()
 {
 
    srand(time(NULL)); // seed the random number
-   strategy2();
+   for (int i = 0 ; i <10; i++)
+       strategy2(i);
+
+    printf("rhoList: ");
+    for (int i = 0 ; i <10; i++)
+       printf("%f, ", rhoList[i]);
+    printf("\nQueLen: ");
+    for (int i = 0 ; i <10; i++)
+       printf("%f, ", Que[i]);
+       
+    printf("\nST: ");
+    for (int i = 0 ; i <10; i++)
+       printf("%f, ", ST[i]);
+
+    printf("\nBP: ");
+    for (int i = 0 ; i <10; i++)
+       printf("%f, ", BP[i]);
 
    return 0;
 }
