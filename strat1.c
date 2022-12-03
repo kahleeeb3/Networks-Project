@@ -9,13 +9,11 @@
 // #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 // #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 2.0 // Mean time between arrivals (λ)
-#define SERV_TIME 1.00  // Mean service time (μ)
+#define ARR_TIME 1.00 // Mean time between arrivals (λ)
+#define SERV_TIME 0.10  // Mean service time (μ)
 
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
-long double pop(long double* arr); // for stack control
-void push(long double *arr, long double value); // for stack control
 
 void strategy1()
 {
@@ -165,11 +163,11 @@ void strategy1()
    }
    // Simulation Over
 
-   long double avgQueLen = queLenSum/elapsedTime;
    long double blockProb = (long double)droppedPackets/(long double)(numCustomers+droppedPackets);
+   long double avgQueLen = queLenSum/elapsedTime;
+   long double AvgSojournTime = queLenSum/numCustomers;
 
    
-   // printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
    // printf("queues:[%d,%d]\n",queues[0],queues[1]);
    // printf("Run Time: %f\n",elapsedTime);
    
@@ -184,8 +182,10 @@ void strategy1()
    // printf("AvgSojournTime: %.8Lf\n", AvgSojournTime);
 
 
+   // printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
    // printf("%.8Lf, ", blockProb);
    // printf("%.8Lf, ", avgQueLen);
+   printf("%.8Lf, ", AvgSojournTime);
    
 }
 
@@ -204,37 +204,12 @@ double rand_exp(double lambda)
    return (-log(1 - y) / lambda);
 }
 
-long double pop(long double *arr){
-    // get the value of first index
-    long double top = arr[0];
-    if(top == 0){
-        return 0;
-    }
-    // shift all values down by 1
-    int i;
-    for(i=0; i<10; i++){
-        arr[i] = arr[i+1];
-    }
-    arr[9] = -1;
-    return top;
-}
-
-void push(long double *arr, long double value){
-    int i;
-    for(i=0; i<10; i++){
-        if(arr[i] == 0){
-            arr[i] = value;
-            break;
-        }
-    }
-}
-
 int main()
 {
 
    srand(time(NULL)); // seed the random number
 
-   int loops = 10; // number of trials to run
+   int loops = 1; // number of trials to run
 
    int i;
    for(i = 0; i<loops; i++){
