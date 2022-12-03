@@ -6,20 +6,14 @@
 
 // Constants
 #define BUFF_SIZE 10        // Size of the Buffer
-#define SIM_TIME 100        // How long the sim should run
 // #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 // #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 1.00 // Mean time between arrivals (λ)
-#define SERV_TIME 1.00      // Mean service time (μ)
+#define ARR_TIME 1.0 // Mean time between arrivals (λ)
+#define SERV_TIME 0.5 // Mean service time (μ)
 
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
-
-void strategy2()
-{
-   printf("strategy 2\n");
-}
 
 void strategy1()
 {
@@ -36,33 +30,49 @@ void strategy1()
    int numCustomers = 0; // number of customers in the system
    int qn; // buffer number that the incoming packet will go to
 
-   int queueLengthSum = 0; // sum of the number of packets in Q1 sampled at the arrival time of a packet
+
+   long double queLenSum = 0; // sum of que length
+   long double t1 = 0.0;
+   long double t2 = 0.0;
+   long double v1 = 0.0;
+   long double v2 = 0.0;
+   long double A1 = 0.0;
+   long double A2 = 0.0;
+
+   
+   long double ArrTimes[2][10]={0}; // stores the arrival times of packets
+   long double sojournTime = 0; // stores the sojourn Time of a packet
 
    // get first packet arrival time
-   arrivalTime = rand_exp(ARR_TIME);   
+   // arrivalTime = rand_exp(ARR_TIME);   
    
    // Run The Simulation
-   while (elapsedTime < SIM_TIME)
+   while ((numCustomers+droppedPackets)<1E4)
    {
     
       // (1) if an arrival happens before a departure
       if ( (arrivalTime < departureTime1) && (arrivalTime<departureTime2) )                
       {
          
-              
          elapsedTime = arrivalTime; // update the elapsed time
+
+         /////////////////////////////////////////////////////////////////////////////////
+         t2 = elapsedTime;
+         v2 = queues[0];
+         
+         A1 = (t2-t1)*v1; // square section
+         A2 = (t2-t1)*(v2-v1)/2; // triangle section
+
+         queLenSum += (A1 + A2);
+
+         t1 = elapsedTime;
+         v1 = queues[0];
+         /////////////////////////////////////////////////////////////////////////////////
+         
          
          // Assign it to a queue randomly
          qn = rand() % 2; // number queue it should go into
-
-         // Keep track of the number of customers in queue 1
-         if ((qn == 0) && (queues[0]>0) ){
-            queueLengthSum += (queues[0]+1);
-         }
-         // else if ((qn == 0) && (queues[0]==0) ){
-         //    queueLengthSum += 1;
-         // }
-
+          
          // if there is less than 10 items in the queue, add the packet to the queue
          if (queues[qn] < BUFF_SIZE)
          {
@@ -71,7 +81,6 @@ void strategy1()
          }
          else
             droppedPackets += 1; // not enough space, drop packet
-
          
          // if there is only one customer in either server 1 or 2, then service it
          if (queues[0] == 1) // QUEUE 1
@@ -90,6 +99,20 @@ void strategy1()
       // (2) if the time of departure from server 1 happens before server 2
       else if (departureTime1 < departureTime2){
          elapsedTime = departureTime1; // update the elapsed time
+
+         /////////////////////////////////////////////////////////////////////////////////
+         t2 = elapsedTime;
+         v2 = queues[0];
+         
+         A1 = (t2-t1)*v1; // square section
+         A2 = (t2-t1)*(v2-v1)/2; // triangle section
+
+         queLenSum += (A1 + A2);
+
+         t1 = elapsedTime;
+         v1 = queues[0];
+         /////////////////////////////////////////////////////////////////////////////////
+
          queues[0] -= 1; // decrease the number of customers in queue 1
 
          // if there are any packets in the first queue
@@ -107,6 +130,21 @@ void strategy1()
       else
       {
          elapsedTime = departureTime2; // update the elapsed time
+
+          /////////////////////////////////////////////////////////////////////////////////
+         t2 = elapsedTime;
+         v2 = queues[0];
+         
+         A1 = (t2-t1)*v1; // square section
+         A2 = (t2-t1)*(v2-v1)/2; // triangle section
+
+         queLenSum += (A1 + A2);
+
+         t1 = elapsedTime;
+         v1 = queues[0];
+         /////////////////////////////////////////////////////////////////////////////////
+
+
          queues[1] -= 1; // decrease the number of customers in queue 2
 
          // if there are any packets in the second queue
@@ -123,17 +161,15 @@ void strategy1()
    }
    // Simulation Over
 
-   printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
-   // printf("queues:[%d,%d]\n",queues[0],queues[1]);
-   // printf("Run Time: %f\n",elapsedTime);
-   
-   // long double blockProb = (long double)droppedPackets/(long double)numCustomers;
-   // printf("Blocking Probability %.8Lf\n", blockProb);
-   // printf("Blocking Probability %i/%i\n", droppedPackets,numCustomers);
+   long double blockProb = (long double)droppedPackets/(long double)(numCustomers+droppedPackets);
+   long double avgQueLen = queLenSum/elapsedTime;
+   long double AvgSojournTime = queLenSum/numCustomers;
 
-   long double avgQueLen = (long double)queueLengthSum/(long double)numCustomers;
-   // printf("Avg Customer in Queue %.8Lf\n", avgQueLen);
-   printf("Avg Customer in Queue: %i/%i\n",queueLengthSum,numCustomers);
+
+   // printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
+   // printf("%.8Lf, ", blockProb);
+   printf("%.8Lf, ", avgQueLen);
+   // printf("%.8Lf, ", AvgSojournTime);
    
 }
 
@@ -156,8 +192,13 @@ int main()
 {
 
    srand(time(NULL)); // seed the random number
-   strategy1();
-   // strategy2();
 
+   int loops = 10; // number of trials to run
+
+   int i;
+   for(i = 0; i<loops; i++){
+      strategy1();
+   }
+   printf("\n");
    return 0;
 }
