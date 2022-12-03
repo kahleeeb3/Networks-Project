@@ -9,8 +9,8 @@
 // #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
 // #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 1.00 // Mean time between arrivals (λ)
-#define SERV_TIME 0.10  // Mean service time (μ)
+#define ARR_TIME 2.00 // Mean time between arrivals (λ)
+#define SERV_TIME 1.00  // Mean service time (μ)
 
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
@@ -78,7 +78,6 @@ void strategy1()
          {
             numCustomers += 1; // increase the number of customers in system
             queues[qn] += 1; // increase the number of customers in queue
-            push(ArrTimes[qn],arrivalTime);
          }
          else
             droppedPackets += 1; // not enough space, drop packet
@@ -147,7 +146,6 @@ void strategy1()
 
 
          queues[1] -= 1; // decrease the number of customers in queue 2
-         sojournTime += elapsedTime - pop(ArrTimes[1]);
 
          // if there are any packets in the second queue
          if ( queues[1] > 0 )
