@@ -6,16 +6,34 @@
 
 // Constants
 #define BUFF_SIZE 10        // Size of the Buffer
-// #define ARR_TIME 1.11111111 // Mean time between arrivals (λ)
-// #define SERV_TIME 1.00      // Mean service time (μ)
 
-#define ARR_TIME 1.0 // Mean time between arrivals (λ)
-#define SERV_TIME 0.5 // Mean service time (μ)
+// #define ARR_TIME 0.6 // Mean time between arrivals (λ)
+// #define SERV_TIME 0.5 // Mean service time (μ)
 
 // function declaration
 double rand_exp(double lambda); // Generate a exponential RV
 
-void strategy1()
+
+
+int chooseQueue(int strategyNumber, int q1Count, int q2Count)
+{
+   if(strategyNumber == 1)
+   {
+      return rand() % 2; // randomly choose 0 or 1
+   }
+   else
+   {
+      if(q1Count < q2Count){
+         return 0;
+      }
+      else{
+         return 1;
+      }
+   }
+}
+
+
+void simulate(double ARR_TIME, double SERV_TIME, int strategy)
 {
    // 1) Random selection, which assigns an incoming packet uniformly randomly to one of the queues.
    // This means a packet has an equal chance of being in either subqueue.
@@ -70,8 +88,9 @@ void strategy1()
          /////////////////////////////////////////////////////////////////////////////////
          
          
-         // Assign it to a queue randomly
-         qn = rand() % 2; // number queue it should go into
+         // Choose which assignment strat to use
+         qn = chooseQueue(strategy, queues[0], queues[1]);
+         // chooseQueue(2, queues[0], queues[1]);
           
          // if there is less than 10 items in the queue, add the packet to the queue
          if (queues[qn] < BUFF_SIZE)
@@ -166,10 +185,10 @@ void strategy1()
    long double AvgSojournTime = queLenSum/numCustomers;
 
 
-   // printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
-   // printf("%.8Lf, ", blockProb);
-   printf("%.8Lf, ", avgQueLen);
-   // printf("%.8Lf, ", AvgSojournTime);
+   printf("Load (rho): %f\n",ARR_TIME/(2*SERV_TIME));
+   printf("blockProb: %.8Lf, ", blockProb);
+   printf("avgQueLen: %.8Lf, ", avgQueLen);
+   printf("AvgSojournTime: %.8Lf\n", AvgSojournTime);
    
 }
 
@@ -193,12 +212,9 @@ int main()
 
    srand(time(NULL)); // seed the random number
 
-   int loops = 10; // number of trials to run
-
-   int i;
-   for(i = 0; i<loops; i++){
-      strategy1();
-   }
-   printf("\n");
+   double lambda = 0.8;
+   double mu = 0.5;
+   int strat = 1;
+   simulate(lambda, mu, strat); // run a single trial
    return 0;
 }
